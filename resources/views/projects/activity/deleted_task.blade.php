@@ -1,1 +1,1 @@
-You deleted a task
+You deleted '{{ $activity->subject->body }}'

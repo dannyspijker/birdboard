@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
 {
+    use RecordsActivity;
+
     protected $guarded = [];
 
     protected $touches = ['project'];
@@ -14,18 +16,20 @@ class Task extends Model
         'completed' => 'boolean'
     ];
 
+    protected static $recordableEvents = ['created', 'deleted'];
+
     public function complete()
     {
         $this->update(['completed' => true]);
 
-        $this->project->recordActivity('completed_task');
+        $this->recordActivity('completed_task');
     }
 
     public function incomplete()
     {
         $this->update(['completed' => false]);
 
-        $this->project->recordActivity('incompleted_task');
+        $this->recordActivity('incompleted_task');
     }
 
     public function project()

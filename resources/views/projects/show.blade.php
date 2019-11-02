@@ -48,7 +48,7 @@
                     {{-- general notes --}}
                     <form method="POST" action="{{ $project->path() }}">
                         @csrf
-                        @method('PATH')
+                        @method('PATCH')
 
                         <textarea
                             name="notes"
