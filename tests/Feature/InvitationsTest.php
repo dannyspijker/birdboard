@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\User;
 use Facades\Tests\Setup\ProjectFactory;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -12,7 +13,46 @@ class InvitationsTest extends TestCase
     use RefreshDatabase;
 
     /** @test */
-    public function a_project_ca_invite_a_user()
+    function non_owners_may_not_invite_users()
+    {
+        $project = ProjectFactory::create();
+
+        $this->actingAs(factory(User::class)->create())
+            ->post($project->path() . '/invitations')
+            ->assertStatus(403);
+    }
+
+    /** @test */
+    public function a_project_owner_can_invite_a_user()
+    {
+        $project = ProjectFactory::create();
+
+        $usertoInvite = factory(User::class)->create();
+
+        $this->actingAs($project->owner)
+            ->post($project->path() . '/invitations', [
+            'email' => $usertoInvite->email
+        ])
+            ->assertRedirect($project->path());
+
+        $this->assertTrue($project->members->contains($usertoInvite));
+    }
+
+    /** @test */
+    function the_email_address_must_be_associated_with_a_valid_birdboard_account()
+    {
+        $project = ProjectFactory::create();
+
+        $this->actingAs($project->owner)->post($project->path() . '/invitations', [
+            'email' => 'notauser@example.com'
+        ])
+            ->assertSessionHasErrors([
+                'email' => 'The user you are inviting must have a Birdboard account.'
+            ]);
+    }
+
+    /** @test */
+    public function invited_users_may_update_product_details()
     {
         $project = ProjectFactory::create();
 
